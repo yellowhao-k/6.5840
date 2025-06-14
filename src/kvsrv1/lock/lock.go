@@ -39,12 +39,24 @@ func (lk *Lock) Acquire() {
 			err := lk.ck.Put(lk.key, lk.id, 0)
 			if err == rpc.OK {
 				return
+			} else if err == rpc.ErrMaybe {
+				//	检查是否已经加成功了
+				value, _, _ := lk.ck.Get(lk.key)
+				if value == lk.id {
+					return
+				}
 			}
 			//	如果加锁成功 就返回，否则继续自转重试
 		} else if value == "" {
 			err := lk.ck.Put(lk.key, lk.id, version)
 			if err == rpc.OK {
 				return
+			} else if err == rpc.ErrMaybe {
+				//	检查是否已经加成功了
+				value, _, _ := lk.ck.Get(lk.key)
+				if value == lk.id {
+					return
+				}
 			}
 		}
 	}
